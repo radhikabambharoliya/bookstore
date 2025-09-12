@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BookStore - Orders Data</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-indigo-100 min-h-screen">
+<!-- Navigation -->
+<nav class="bg-white shadow-lg sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <div class="flex items-center">
+        <span class="text-2xl">📚</span>
+        <span class="ml-2 text-xl font-bold text-gray-800">BookStore - Orders</span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <button onclick="goBackToAdmin()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">
+          ← Back to Admin
+        </button>
+        <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Orders Data -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-4xl font-bold text-gray-800">📋 Orders Database</h1>
+    <div class="flex items-center space-x-4">
+      <div class="bg-white px-4 py-2 rounded-lg shadow">
+        <span class="text-sm text-gray-600">Total Orders: </span>
+        <span id="orders-count" class="font-bold text-blue-600">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Orders Table -->
+  <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Details</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact Info</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="orders-table-body" class="bg-white divide-y divide-gray-200">
+          <!-- Orders will be loaded here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <p class="mt-4 text-gray-600 text-lg">Loading orders from database...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="text-center py-12 hidden">
+      <div class="text-8xl mb-4">📋</div>
+      <h3 class="text-xl font-semibold text-gray-800 mb-2">No Orders Found</h3>
+      <p class="text-gray-500">There are no orders in the database yet.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Order Details Modal -->
+<div id="order-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-lg max-w-2xl w-full p-6 max-h-96 overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold">Order Details</h3>
+        <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+      </div>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let allOrders = [];
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+  loadOrdersData();
+});
+
+// Load orders from database
+function loadOrdersData() {
+  document.getElementById('loading-state').classList.remove('hidden');
+  document.getElementById('empty-state').classList.add('hidden');
+
+  fetch('/all')
+    .then(response => response.json())
+    .then(data => {
+      allOrders = data;
+      displayOrders();
+      updateStats();
+      document.getElementById('loading-state').classList.add('hidden');
+    })
+    .catch(error => {
+      console.error('Error loading orders:', error);
+      document.getElementById('loading-state').classList.add('hidden');
+      document.getElementById('empty-state').classList.remove('hidden');
+    });
+}
+
+// Display orders in table
+function displayOrders() {
+  const tbody = document.getElementById('orders-table-body');
+  tbody.innerHTML = '';
+
+  if (allOrders.length === 0) {
+    document.getElementById('empty-state').classList.remove('hidden');
+    return;
+  }
+
+  document.getElementById('empty-state').classList.add('hidden');
+
+  allOrders.forEach((order, index) => {
+    const row = document.createElement('tr');
+    row.className = 'hover:bg-gray-50 transition-colors';
+
+    const statusColor = getStatusColor(order.paymentStatus);
+    const paymentIcon = order.paymentMethod === 'COD' ? '💵' : '💳';
+
+    row.innerHTML = `
+      <td class="px-6 py-4 whitespace-nowrap">
+        <div>
+          <div class="text-sm font-medium text-gray-900">${order.orderid || 'N/A'}</div>
+          <div class="text-sm text-gray-500">Payment ID: ${order.payid || 'N/A'}</div>
+        </div>
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap">
+        <div class="text-sm font-medium text-gray-900">${order.name || 'N/A'}</div>
+        <div class="text-sm text-gray-500">${order.email || 'N/A'}</div>
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap">
+        <div class="text-sm text-gray-900">${order.phone || 'N/A'}</div>
+        <div class="text-sm text-gray-500" title="${order.address || 'N/A'}">
+          ${order.address ? (order.address.length > 30 ? order.address.substring(0, 30) + '...' : order.address) : 'N/A'}
+        </div>
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap">
+        <div class="text-sm font-bold text-green-600">$${order.amount ? order.amount.toFixed(2) : '0.00'}</div>
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap">
+        <div class="flex items-center">
+          <span class="mr-2">${paymentIcon}</span>
+          <span class="text-sm text-gray-900">${order.paymentMethod || 'N/A'}</span>
+        </div>
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}">
+          ${order.paymentStatus || 'N/A'}
+        </span>
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+        <button onclick="viewOrder(${index})" class="text-indigo-600 hover:text-indigo-900">View</button>
+        <button onclick="editOrder(${index})" class="text-blue-600 hover:text-blue-900">Edit</button>
+        <button onclick="deleteOrder(${index})" class="text-red-600 hover:text-red-900">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// Get status color classes
+function getStatusColor(status) {
+  switch(status) {
+    case 'Paid':
+      return 'bg-green-100 text-green-800';
+    case 'COD - Pending':
+      return 'bg-yellow-100 text-yellow-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+}
+
+// Update statistics
+function updateStats() {
+  document.getElementById('orders-count').textContent = allOrders.length;
+}
+
+// View order details
+function viewOrder(index) {
+  const order = allOrders[index];
+  const modal = document.getElementById('order-modal');
+  const content = document.getElementById('modal-content');
+
+  content.innerHTML = `
+    <div class="grid grid-cols-2 gap-4">
+      <div><strong>Order ID:</strong> ${order.orderid || 'N/A'}</div>
+      <div><strong>Payment ID:</strong> ${order.payid || 'N/A'}</div>
+      <div><strong>Name:</strong> ${order.name || 'N/A'}</div>
+      <div><strong>Email:</strong> ${order.email || 'N/A'}</div>
+      <div><strong>Phone:</strong> ${order.phone || 'N/A'}</div>
+      <div><strong>Amount:</strong> $${order.amount ? order.amount.toFixed(2) : '0.00'}</div>
+      <div><strong>Payment Method:</strong> ${order.paymentMethod || 'N/A'}</div>
+      <div><strong>Payment Status:</strong> ${order.paymentStatus || 'N/A'}</div>
+    </div>
+    <div class="mt-4">
+      <strong>Address:</strong>
+      <p class="mt-1 text-gray-700">${order.address || 'N/A'}</p>
+    </div>
+    <div class="mt-4">
+      <strong>Signature:</strong>
+      <p class="mt-1 text-gray-700 text-sm break-all">${order.signature || 'N/A'}</p>
+    </div>
+  `;
+
+  modal.classList.remove('hidden');
+}
+
+// Close modal
+function closeModal() {
+  document.getElementById('order-modal').classList.add('hidden');
+}
+
+// Edit order (placeholder)
+function editOrder(index) {
+  alert('Edit functionality coming soon!');
+}
+
+// Delete order
+function deleteOrder(index) {
+  if (confirm('Are you sure you want to delete this order?')) {
+    const order = allOrders[index];
+    alert('Delete functionality needs to be implemented in backend');
+  }
+}
+
+// Navigation functions
+function goBackToAdmin() {
+  window.location.href = '/admin';
+}
+
+function logout() {
+  window.location.href = '/login';
+}
+</script>
+</body>
+</html>

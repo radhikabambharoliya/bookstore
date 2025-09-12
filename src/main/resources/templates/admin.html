@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookStore - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-indigo-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl">📚</span>
+                    <span class="ml-2 text-xl font-bold text-gray-800">BookStore Admin</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="welcome-text" class="text-gray-700 font-medium">Welcome, Admin!</span>
+                    <!-- Add Show Orders Button -->
+                    <button onclick="showOrders()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        📋 View Orders
+                    </button>
+                    <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Admin Dashboard -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 class="text-4xl font-bold text-gray-800 mb-8">🛠️ Admin Dashboard</h1>
+        
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                <div class="text-4xl mb-4">📋</div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">View Orders</h3>
+                <p class="text-gray-600 mb-4">See all customer orders and manage them</p>
+                <button onclick="showOrders()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition w-full">
+                    View Orders
+                </button>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                <div class="text-4xl mb-4">📚</div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Manage Books</h3>
+                <p class="text-gray-600 mb-4">Add, edit, or remove books from inventory</p>
+                <button onclick="scrollToBooks()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition w-full">
+                    Manage Books
+                </button>
+            </div>
+                    </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Add Book Form -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">📖 Add New Book</h2>
+                <form id="add-book-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Book Title</label>
+                        <input type="text" id="book-title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Author</label>
+                        <input type="text" id="book-author" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Price ($)</label>
+                        <input type="number" id="book-price" step="0.01" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        <select id="book-category" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500">
+                            <option value="">Select Category</option>
+                            <option value="FICTION">Fiction</option>
+                            <option value="NON_FICTION">Non-Fiction</option>
+                            <option value="SCIENCE">Science</option>
+                            <option value="TECHNOLOGY">Technology</option>
+                            <option value="HISTORY">History</option>
+                            <option value="BIOGRAPHY">Biography</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea id="book-description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition font-semibold">
+                        Add Book
+                    </button>
+                </form>
+            </div>
+            <!-- Books Management -->
+            <div class="bg-white rounded-xl shadow-lg p-6" id="books-section">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">📚 Manage Books</h2>
+                <div id="admin-books-list" class="space-y-4 max-h-96 overflow-y-auto">
+                    <!-- Books will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        function logout() {
+            window.location.href = '/login';
+        }
+        
+        function showOrders() {
+            window.location.href = '/show';
+        }
+        
+        function scrollToBooks() {
+            document.getElementById('books-section').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
